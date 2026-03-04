@@ -42,7 +42,11 @@ fn display_init() {
     let ver = env!("CARGO_PKG_VERSION").to_string();
     let authors = env!("CARGO_PKG_AUTHORS").to_string();
     let title = format!("-=WebRTC Client=-");
+    println!("");
     println!("{}", title.underline().bold().green());
-    println!("{}{}", "version".to_string().bright_green(), ver.bright_green());
-    println!("{}{}", "by".to_string().italic().cyan(), authors.italic().cyan());
+    println!("");
+    println!("{}{}", "version ".to_string().bright_green(), ver.bright_green());
+    println!("{}{}", "by ".to_string().italic().cyan(), authors.italic().cyan());
+    println!("");
+    println!("");
 }

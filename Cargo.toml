@@ -1,11 +1,11 @@
 [package]
 name = "dc"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
 [dependencies]
-tokio = { version = "1.49.0", features = ["net", "time", "sync", "rt", "rt-multi-thread"] }
+tokio = { version = "1.50.0", features = ["net", "time", "sync", "rt", "rt-multi-thread"] }
 anyhow = "1.0.102"
 ctrlc = "3.5.2"
 serde_json = "1.0.149"

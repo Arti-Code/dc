@@ -22,7 +22,7 @@ use webrtc::runtime::{channel, default_runtime, sleep};
 use crate::{event_handler::*, get_local_ip, read_input};
 
 pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
-    let target = read_input("enter target:")?;
+    let target = read_input("enter target")?;
     let mut media = MediaEngine::default();
     media.register_default_codecs()?;
     let (ctrlc_tx, mut ctrlc_rx) = channel::<()>(1);
@@ -95,9 +95,8 @@ pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
     gather_rx.recv().await;
     let offer_sdp = pc.local_description().await
     .ok_or_else(|| anyhow::anyhow!("no local description"))?;
-    let payload = serde_json::to_string(&offer_sdp)?;
-    println!("{}", payload);
-    signal_client.send_data(&target, payload, DescriptionType::Offer).await?;
+    let sdp = serde_json::to_string(&offer_sdp)?;
+    signal_client.send_data(&target, sdp, DescriptionType::Offer).await?;
     println!("sent offer to {}, waiting for answer...", target);
     let sd = signal_client.wait_data().await?;
     println!("answer received from {}", sd.sender);
@@ -105,14 +104,6 @@ pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
     let answer_sdp = serde_json::from_str(&answer_str)?;
     pc.set_remote_description(answer_sdp).await?;
     println!("set remote description");
-    futures::select! {
-        _ = done_rx.recv().fuse() => {
-            println!("Peer connection failed or data channel closed.");
-        }
-        _ = ctrlc_rx.recv().fuse() => {
-            println!();
-        }
-    }
     println!("Press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {

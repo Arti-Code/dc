@@ -64,14 +64,6 @@ pub async fn process_answerer(name: &str) -> anyhow::Result<()> {
     let payload = serde_json::to_string(&answer_sdp)?;
     signal_client.send_data(&sd.sender, payload, DescriptionType::Answer).await?;
     println!("sent answer to {}", sd.sender);
-    futures::select! {
-        _ = done_rx.recv().fuse() => {
-            println!("Peer connection failed or data channel closed.");
-        }
-        _ = ctrlc_rx.recv().fuse() => {
-            println!();
-        }
-    }
     println!("Press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
