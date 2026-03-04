@@ -1,0 +1,22 @@
+[package]
+name = "dc"
+version = "0.3.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.49.0", features = ["net", "time", "sync", "rt", "rt-multi-thread"] }
+anyhow = "1.0.102"
+ctrlc = "3.5.2"
+serde_json = "1.0.149"
+rand = "0.10.0"
+webrtc = {git = "https://github.com/webrtc-rs/webrtc.git", rev = "b899593a5c525e88098ce9f5326fe29b4478832d"}
+signaler = {path = "../ws"}
+bytes = "1.11.1"
+clap = {version="4.5.60", features=["derive"]}
+futures = "0.3.32"
+async-trait = "0.1.89"
+dialoguer = "0.12.0"
+
+#[dev-dependencies]
+#webrtc = {path = "../webrtc"}
+#signaler = {path = "../ws2"}
