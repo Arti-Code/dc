@@ -1,10 +1,7 @@
-use std::net::Ipv4Addr;
-use std::{net::IpAddr, sync::Arc};
+use std::sync::Arc;
 use std::time::Duration;
-use dialoguer::theme::ColorfulTheme;
 use signaler::command::DescriptionType;
 use signaler::{client::Client as SignalClient, command::generate_description};
-use anyhow::Result;
 use bytes::BytesMut;
 //use clap::Parser;
 use futures::FutureExt;
@@ -15,16 +12,13 @@ use webrtc::{
         MediaEngine, 
         RTCConfigurationBuilder, 
         RTCIceServer, 
-        RTCSessionDescription, 
         Registry, 
         register_default_interceptors
     }
 };
 //use webrtc::data_channel::DataChannel;
 use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
-use webrtc::runtime::{block_on, channel, default_runtime, sleep};
-//use webrtc::runtime::Runtime;
-use dialoguer::*;
+use webrtc::runtime::{channel, default_runtime, sleep};
 use crate::{event_handler::*, get_local_ip, read_input};
 
 pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
@@ -111,6 +105,15 @@ pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
     let answer_sdp = serde_json::from_str(&answer_str)?;
     pc.set_remote_description(answer_sdp).await?;
     println!("set remote description");
+    futures::select! {
+        _ = done_rx.recv().fuse() => {
+            println!("Peer connection failed or data channel closed.");
+        }
+        _ = ctrlc_rx.recv().fuse() => {
+            println!();
+        }
+    }
+    println!("Press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
             println!("Peer connection failed or data channel closed.");
