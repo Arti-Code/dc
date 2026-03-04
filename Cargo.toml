@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -18,3 +18,6 @@ futures = "0.3.32"
 async-trait = "0.1.89"
 dialoguer = "0.12.0"
 colored = "3.1.1"
+
+[build-dependencies]
+embed-resource = "3.0.6"
