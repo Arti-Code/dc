@@ -1,7 +1,8 @@
 [package]
 name = "dc"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2024"
+authors = ["Artur Gwoździowski"]
 
 [dependencies]
 tokio = { version = "1.49.0", features = ["net", "time", "sync", "rt", "rt-multi-thread"] }
@@ -16,7 +17,4 @@ clap = {version="4.5.60", features=["derive"]}
 futures = "0.3.32"
 async-trait = "0.1.89"
 dialoguer = "0.12.0"
-
-#[dev-dependencies]
-#webrtc = {path = "../webrtc"}
-#signaler = {path = "../ws2"}
+colored = "3.1.1"

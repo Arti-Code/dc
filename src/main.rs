@@ -1,12 +1,13 @@
 pub mod answer;
 pub mod event_handler;
 pub mod offer;
-use std::net::Ipv4Addr;
-use std::net::IpAddr;
+pub mod util;
 use dialoguer::theme::ColorfulTheme;
 use anyhow::Result;
 use webrtc::runtime::block_on;
 use dialoguer::*;
+use colored::*;
+use crate::util::{get_local_ip, read_input};
 use crate::offer::process_offerer;
 use crate::answer::process_answerer;
 
@@ -15,6 +16,8 @@ fn main() -> Result<()> {
 }
 
 async fn async_main() -> Result<()> {
+    display_init();
+    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     let sdp_modes = &[
         "OFFER",
         "ANSWER"
@@ -35,25 +38,11 @@ async fn async_main() -> Result<()> {
     Ok(())
 }
 
-
-pub fn get_local_ip() -> IpAddr {
-    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0")
-        && socket.connect("8.8.8.8:80").is_ok()
-        && let Ok(addr) = socket.local_addr()
-        && let IpAddr::V4(ip) = addr.ip()
-    {
-        ip.into()
-    } else {
-        Ipv4Addr::new(127, 0, 0, 1).into()
-    }
-}
-
-pub fn read_input(label: &str) -> Result<String> {
-    println!("{label}: ");
-    let mut line = String::new();
-    std::io::stdin().read_line(&mut line)?;
-    line = line.trim().to_owned();
-    println!();
-
-    Ok(line)
+fn display_init() {
+    let ver = env!("CARGO_PKG_VERSION").to_string();
+    let authors = env!("CARGO_PKG_AUTHORS").to_string();
+    let title = format!("-=WebRTC Client=-");
+    println!("{}", title.underline().bold().green());
+    println!("{}{}", "version".to_string().bright_green(), ver.bright_green());
+    println!("{}{}", "by".to_string().italic().cyan(), authors.italic().cyan());
 }
