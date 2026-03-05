@@ -25,7 +25,7 @@ async fn async_main() -> Result<()> {
         .with_prompt("select SDP mode").default(0)
         .items(&sdp_modes[..]).interact().unwrap();
     match sdp_mode {
-        0 => {
+        1 => {
             let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
             .default("USER".to_string()).allow_empty(false).show_default(true)
             .interact_text().unwrap();
@@ -34,7 +34,7 @@ async fn async_main() -> Result<()> {
             .interact_text().unwrap();
             process_offerer(&name, &target).await?;
         },
-        1 => {
+        0 => {
             let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
             .default("ROBOT".to_string()).allow_empty(false).show_default(true)
             .interact_text().unwrap();
