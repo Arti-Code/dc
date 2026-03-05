@@ -7,7 +7,6 @@ use anyhow::Result;
 use webrtc::runtime::block_on;
 use dialoguer::*;
 use colored::*;
-use crate::util::{get_local_ip, read_input};
 use crate::offer::process_offerer;
 use crate::answer::process_answerer;
 
@@ -19,18 +18,26 @@ async fn async_main() -> Result<()> {
     display_init();
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     let sdp_modes = &[
-        "OFFER",
-        "ANSWER"
+        "ANSWER",
+        "OFFER"
     ];
     let sdp_mode = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("select SDP mode").default(0).items(&sdp_modes[..]).interact().unwrap();
-    let name = read_input("enter name")?;
+        .with_prompt("select SDP mode").default(0)
+        .items(&sdp_modes[..]).interact().unwrap();
     match sdp_mode {
         0 => {
-            process_offerer(&name).await?;
+            let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
+            .default("USER".to_string()).allow_empty(false).show_default(true)
+            .interact_text().unwrap();
+            let target: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter target")
+            .default("ROBOT".to_string()).allow_empty(false).show_default(true)
+            .interact_text().unwrap();
+            process_offerer(&name, &target).await?;
         },
-        // ANSWERER
         1 => {
+            let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
+            .default("ROBOT".to_string()).allow_empty(false).show_default(true)
+            .interact_text().unwrap();
             process_answerer(&name).await?;
         },
         _ => unreachable!(),

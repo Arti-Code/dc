@@ -2,6 +2,12 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../Web/web"
+		},
+		{
+			"path": "../../Web/ws"
 		}
 	],
 	"settings": {}

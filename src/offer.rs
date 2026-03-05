@@ -3,9 +3,7 @@ use std::time::Duration;
 use signaler::command::DescriptionType;
 use signaler::{client::Client as SignalClient, command::generate_description};
 use bytes::BytesMut;
-//use clap::Parser;
 use futures::FutureExt;
-//use signal::get_local_ip;
 use webrtc::{
     data_channel::DataChannelEvent, 
     peer_connection::{
@@ -16,13 +14,13 @@ use webrtc::{
         register_default_interceptors
     }
 };
-//use webrtc::data_channel::DataChannel;
 use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
 use webrtc::runtime::{channel, default_runtime, sleep};
-use crate::{event_handler::*, get_local_ip, read_input};
+use crate::util::get_local_ip;
+use crate::event_handler::*;
 
-pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
-    let target = read_input("enter target")?;
+
+pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
     let mut media = MediaEngine::default();
     media.register_default_codecs()?;
     let (ctrlc_tx, mut ctrlc_rx) = channel::<()>(1);
@@ -31,7 +29,8 @@ pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
     })?;
     let (gather_tx, mut gather_rx) = channel::<()>(1);
     let (done_tx, mut done_rx) = channel::<()>(1);
-    let runtime = default_runtime().ok_or_else(|| anyhow::anyhow!("no async runtime found"))?;
+    let runtime = default_runtime()
+    .ok_or_else(|| anyhow::anyhow!("no async runtime found"))?;
     let registry = register_default_interceptors(Registry::new(), &mut media)?;
     let pc = PeerConnectionBuilder::new()
     .with_configuration(
@@ -42,10 +41,12 @@ pub async fn process_offerer(name: &str) -> anyhow::Result<()> {
             }])
             .build(),
     )
-    .with_media_engine(media).with_interceptor_registry(registry).with_handler(Arc::new(OfferHandler {
+    .with_media_engine(media).with_interceptor_registry(registry)
+    .with_handler(Arc::new(OfferHandler {
         gather_complete_tx: gather_tx,
         done_tx: done_tx.clone(),
-    })).with_runtime(runtime.clone()).with_udp_addrs(vec![format!("{}:0", get_local_ip())])
+    })).with_runtime(runtime.clone())
+    .with_udp_addrs(vec![format!("{}:0", get_local_ip())])
     .build().await?;
     let dc = pc.create_data_channel("data", None).await?;
     runtime.spawn(Box::pin(async move {
