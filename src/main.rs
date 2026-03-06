@@ -1,14 +1,10 @@
-pub mod answer;
-pub mod event_handler;
-pub mod offer;
-pub mod util;
 use dialoguer::theme::ColorfulTheme;
 use anyhow::Result;
 use webrtc::runtime::block_on;
 use dialoguer::*;
 use colored::*;
-use crate::offer::process_offerer;
-use crate::answer::process_answerer;
+use dc::offer::process_offerer;
+use dc::answer::process_answerer;
 
 fn main() -> Result<()> {
     block_on(async_main())
@@ -38,7 +34,17 @@ async fn async_main() -> Result<()> {
             let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
             .default("ROBOT".to_string()).allow_empty(false).show_default(true)
             .interact_text().unwrap();
-            process_answerer(&name).await?;
+            let restart: bool = false;
+            process_answerer(&name, restart).await?;
+            /* loop {
+                if restart {
+                    println!("{}", "RESTARTING LISTENER".to_string().yellow().bold());
+                } else {
+                    println!("{}", "STARTING LISTENER".to_string().green().bold());
+                }
+                process_answerer(&name, restart).await?;
+                restart = true;
+            } */
         },
         _ => unreachable!(),
     }
@@ -53,7 +59,7 @@ fn display_init() {
     println!("");
     println!("{}", title.underline().bold().green());
     println!("");
-    println!("{} {}", "version".to_string().bright_green(), ver.bright_green());
+    println!("{} {}", "version".to_string().yellow(), ver.yellow());
     println!("{} {}", authors.italic().cyan(), date.italic().cyan());
     println!("");
     println!("");

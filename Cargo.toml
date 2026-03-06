@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.4.5"
+version = "0.5.2"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -21,3 +21,11 @@ colored = "3.1.1"
 
 [build-dependencies]
 embed-resource = "3.0.6"
+
+[[bin]]
+name="dc"
+path="src/main.rs"
+
+[[bin]]
+name="waiter"
+path="src/waiter.rs"

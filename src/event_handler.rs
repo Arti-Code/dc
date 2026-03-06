@@ -8,7 +8,7 @@ use webrtc::{
     peer_connection::{PeerConnectionEventHandler, RTCIceGatheringState, RTCPeerConnectionState}, 
     runtime::{Runtime, Sender, sleep}
 };
-
+use colored::*;
 
 
 
@@ -22,15 +22,25 @@ pub struct OfferHandler {
 #[async_trait::async_trait]
 impl PeerConnectionEventHandler for OfferHandler {
     async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
+        println!("ice gathering state: {state}");
         if state == RTCIceGatheringState::Complete {
             let _ = self.gather_complete_tx.try_send(());
         }
     }
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
-        println!("Peer connection state: {state}");
+        //println!("peer connection state: {state}");
         if state == RTCPeerConnectionState::Failed {
+            println!("peer connection failed");
             let _ = self.done_tx.try_send(());
+        } else if state == RTCPeerConnectionState::Disconnected {
+            println!("peer connection disconnected");
+            let _ = self.done_tx.try_send(());
+        } else if state == RTCPeerConnectionState::Closed {
+            println!("peer connection closed");
+            let _ = self.done_tx.try_send(());
+        } else {
+            println!("peer connection: {state}");
         }
     }
 }
@@ -45,15 +55,31 @@ pub struct AnswerHandler {
 #[async_trait::async_trait]
 impl PeerConnectionEventHandler for AnswerHandler {
     async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
+        println!("ice gathering state: {state}");
         if state == RTCIceGatheringState::Complete {
             let _ = self.gather_complete_tx.try_send(());
         }
     }
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
-        println!("Peer connection state: {state}");
+        //println!("Peer connection state: {state}");
         if state == RTCPeerConnectionState::Failed {
+            println!("{}", "peer connection failed".to_string().red().bold());
             let _ = self.done_tx.try_send(());
+        } else if state == RTCPeerConnectionState::Disconnected {
+            println!("{}", "peer connection disconnected".to_string().bright_red().bold());
+            let _ = self.done_tx.try_send(());
+        } else if state == RTCPeerConnectionState::Connected {
+            println!("{}", "peer connection connected".to_string().green().bold());
+        } else if state == RTCPeerConnectionState::Connecting {
+            println!("{}", "peer connection connecting...".to_string().bright_green().bold());
+        } else if state == RTCPeerConnectionState::New {
+            println!("{}", "peer connection new".to_string().cyan().bold());
+        } else if state == RTCPeerConnectionState::Closed {
+            println!("{}", "peer connection closed".to_string().red().bold());
+            let _ = self.done_tx.try_send(());
+        } else {
+            println!("peer connection: {state}");
         }
     }
 
@@ -89,21 +115,34 @@ impl PeerConnectionEventHandler for AnswerHandler {
                 } else {
                     match dc.poll().await {
                         Some(DataChannelEvent::OnOpen) => {
-                            println!("datachannel open");
+                            println!("{}", "datachannel open".to_string().green().bold());
                             opened = true;
                             send_timer = Box::pin(sleep(Duration::from_secs(5)));
                         }
                         Some(DataChannelEvent::OnClose) => {
                             let _ = done_tx.try_send(());
-                            println!("onCloseo");
+                            //println!("datachannel close");
+                            println!("{}", "datachannel closed".to_string().red().bold());
+                            break;
+                        },
+                        Some(DataChannelEvent::OnClosing) => {
+                            let _ = done_tx.try_send(());
+                            println!("{}", "datachannel closing".to_string().yellow().bold());
+                            break;
+                        },
+                        Some(DataChannelEvent::OnError) => {
+                            let _ = done_tx.try_send(());
+                            println!("{}", "datachannel error".to_string().red().bold());
                             break;
                         },
                         None => {
                             let _ = done_tx.try_send(());
-                            println!("None event");
+                            println!("none event");
                             break;
                         }
-                        _ => {}
+                        _ => {
+                            println!("other datachannel event");
+                        }
                     }
                 }
             }

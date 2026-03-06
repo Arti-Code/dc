@@ -105,10 +105,10 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
     let answer_sdp = serde_json::from_str(&answer_str)?;
     pc.set_remote_description(answer_sdp).await?;
     println!("set remote description");
-    println!("Press ctrl-c to stop");
+    println!("press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
-            println!("Peer connection failed or data channel closed.");
+            println!("peer connection failed or data channel closed.");
         }
         _ = ctrlc_rx.recv().fuse() => {
             println!();

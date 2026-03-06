@@ -14,14 +14,17 @@ use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
 use webrtc::runtime::{channel, default_runtime};
 use crate::util::get_local_ip;
 use crate::event_handler::*;
+use colored::*;
 
-pub async fn process_answerer(name: &str) -> anyhow::Result<()> {
+pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     let mut media = MediaEngine::default();
     media.register_default_codecs()?;
     let (ctrlc_tx, mut ctrlc_rx) = channel::<()>(1);
-    ctrlc::set_handler(move || {
-        let _ = ctrlc_tx.try_send(());
-    })?;
+    if !restart {
+        ctrlc::set_handler(move || {
+            let _ = ctrlc_tx.try_send(());
+        })?;
+    }
     let (gather_tx, mut gather_rx) = channel::<()>(1);
     let (done_tx, mut done_rx) = channel::<()>(1);
     let runtime = default_runtime()
@@ -48,7 +51,7 @@ pub async fn process_answerer(name: &str) -> anyhow::Result<()> {
     let url = "ws://yamanote.proxy.rlwy.net:25134";
     let mut signal_client = SignalClient::new(&name, url);
     signal_client.connect().await?;
-    println!("waiting for offer...");
+    println!("{}", "ready!".to_string().green().bold());
     let sd =signal_client.wait_data().await?;
     println!("offer received from {}", sd.sender);
     //dbg!(&sd);
@@ -64,10 +67,10 @@ pub async fn process_answerer(name: &str) -> anyhow::Result<()> {
     let payload = serde_json::to_string(&answer_sdp)?;
     signal_client.send_data(&sd.sender, payload, DescriptionType::Answer).await?;
     println!("sent answer to {}", sd.sender);
-    println!("Press ctrl-c to stop");
+    println!("press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
-            println!("Peer connection failed or data channel closed.");
+            println!("peer connection failed or data channel closed.");
         }
         _ = ctrlc_rx.recv().fuse() => {
             println!();
