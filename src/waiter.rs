@@ -19,32 +19,49 @@ use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
 use webrtc::runtime::{channel, default_runtime};
 use dc::util::get_local_ip;
 use dc::event_handler::*;
-//use webrtc::runtime::tokio::
-
+use tokio::sync::mpsc::{self, Receiver};
+//use webrtc::runtime::tokio:: 
+//use webrtc::runtime::channel::{Sender as TokioSender, Receiver as TokioReceiver};
 fn main() -> Result<()> {
-        block_on(async_main())
-}
-
-async fn async_main() -> Result<()> {
-    let (ctrlc_tx, mut ctrlc_rx) = channel::<()>(1);
+    let (ctrlc_tx, mut ctrlc_rx) = mpsc::channel::<()>(1);
     ctrlc::set_handler(move || {
         let _ = ctrlc_tx.try_send(());
     })?;
     display_init();
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    std::thread::sleep(std::time::Duration::from_millis(500));
     let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
     .default("ROBOT".to_string()).allow_empty(false).show_default(true)
     .interact_text().unwrap();
-    let mut media = MediaEngine::default();
-    media.register_default_codecs()?;
-    
-
-    let (gather_tx, mut gather_rx) = channel::<()>(1);
-    let (done_tx, mut done_rx) = channel::<()>(1);
-    let runtime = default_runtime()
-    .ok_or_else(|| anyhow::anyhow!("no async runtime found"))?;
-    let gather_tx2 = gather_tx.clone();
     loop {
+         match block_on(async_main(name.clone(), &mut ctrlc_rx)) {
+             Ok(false) => {
+                println!("{}", "closing...".red().bold());
+                std::thread::sleep(std::time::Duration::from_millis(3000));
+                break
+            },
+             Ok(true) => {
+                 println!("{}", "restarting...".yellow().bold());
+                 std::thread::sleep(std::time::Duration::from_millis(500));
+             }
+             Err(e) => {
+                 println!("error: {}", e);
+                 println!("{}", "restarting...".bright_red().bold());
+                 std::thread::sleep(std::time::Duration::from_millis(500));
+             }
+         }
+    }
+    Ok(())
+    //block_on(async_main())
+}
+
+async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
+        let mut media = MediaEngine::default();
+        media.register_default_codecs()?;
+        let (gather_tx, mut gather_rx) = channel::<()>(1);
+        let (done_tx, mut done_rx) = channel::<()>(1);
+        let runtime = default_runtime()
+        .ok_or_else(|| anyhow::anyhow!("no async runtime found"))?;
+        let gather_tx2 = gather_tx.clone();
         let registry = register_default_interceptors(Registry::new(), &mut media)?;
         let pc = PeerConnectionBuilder::new()
         .with_configuration(
@@ -67,7 +84,7 @@ async fn async_main() -> Result<()> {
         let url = "ws://yamanote.proxy.rlwy.net:25134";
         let mut signal_client = SignalClient::new(&name, url);
         signal_client.connect().await?;
-        println!("{}", "ready!".to_string().green().bold());
+        println!("{}", "ready!".to_string().blue().bold());
         let sd =signal_client.wait_data().await?;
         println!("offer received from {}", sd.sender);
         //dbg!(&sd);
@@ -87,17 +104,20 @@ async fn async_main() -> Result<()> {
         futures::select! {
             _ = done_rx.recv().fuse() => {
                 println!("{}", "data channel closed".to_string().red().bold());
+                pc.close().await?;
+                return Ok(true);
             }
             _ = ctrlc_rx.recv().fuse() => {
                 println!();
-                break;
+                pc.close().await?;
+                return Ok(false)
+                //break;
             }
         }
-        pc.close().await?;
-        println!("{}", "restarting...".yellow());
-        tokio::time::sleep(std::time::Duration::from_millis(5000)).await;
-    }
-    Ok(())
+        //pc.close().await?;
+        //println!("{}", "restarting...".yellow());
+        //tokio::time::sleep(std::time::Duration::from_millis(5000)).await;
+    //Ok(true)
 }
 
 fn display_init() {

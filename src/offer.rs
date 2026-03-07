@@ -18,6 +18,7 @@ use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
 use webrtc::runtime::{channel, default_runtime, sleep};
 use crate::util::get_local_ip;
 use crate::event_handler::*;
+use colored::*;
 
 
 pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
@@ -75,7 +76,7 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
             } else {
                 match dc.poll().await {
                     Some(DataChannelEvent::OnOpen) => {
-                        println!("datachannel open");
+                        println!("{}", "datachannel open".to_string().green().bold());
                         opened = true;
                         send_timer = Box::pin(sleep(Duration::from_secs(5)));
                     }
@@ -85,7 +86,7 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
             }
         }
     
-        println!("exit datachannel loop");
+        println!("{}", "exit datachannel loop".to_string().yellow().bold());
     }));
 
     let url = "ws://yamanote.proxy.rlwy.net:25134";
@@ -108,7 +109,7 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
     println!("press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
-            println!("peer connection failed or data channel closed.");
+            println!("{}", "data channel closed".to_string().red().bold());
         }
         _ = ctrlc_rx.recv().fuse() => {
             println!();

@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.5.2"
+version = "0.5.5"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -29,3 +29,7 @@ path="src/main.rs"
 [[bin]]
 name="waiter"
 path="src/waiter.rs"
+
+[[bin]]
+name = "logger"
+path = "src/logger.rs"

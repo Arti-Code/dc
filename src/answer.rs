@@ -51,7 +51,7 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     let url = "ws://yamanote.proxy.rlwy.net:25134";
     let mut signal_client = SignalClient::new(&name, url);
     signal_client.connect().await?;
-    println!("{}", "ready!".to_string().green().bold());
+    println!("{}", "ready!".to_string().blue().bold());
     let sd =signal_client.wait_data().await?;
     println!("offer received from {}", sd.sender);
     //dbg!(&sd);

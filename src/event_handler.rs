@@ -31,13 +31,19 @@ impl PeerConnectionEventHandler for OfferHandler {
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
         //println!("peer connection state: {state}");
         if state == RTCPeerConnectionState::Failed {
-            println!("peer connection failed");
+            println!("{}", "peer connection failed".to_string().red().bold());
             let _ = self.done_tx.try_send(());
         } else if state == RTCPeerConnectionState::Disconnected {
-            println!("peer connection disconnected");
+            println!("{}", "peer connection disconnected".to_string().bright_red().bold());
             let _ = self.done_tx.try_send(());
+        } else if state == RTCPeerConnectionState::Connected {
+            println!("{}", "peer connection connected".to_string().green().bold());
+        } else if state == RTCPeerConnectionState::Connecting {
+            println!("{}", "peer connection connecting...".to_string().bright_green().bold());
+        } else if state == RTCPeerConnectionState::New {
+            println!("{}", "peer connection new".to_string().cyan().bold());
         } else if state == RTCPeerConnectionState::Closed {
-            println!("peer connection closed");
+            println!("{}", "peer connection closed".to_string().red().bold());
             let _ = self.done_tx.try_send(());
         } else {
             println!("peer connection: {state}");
