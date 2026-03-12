@@ -1,5 +1,10 @@
-use dialoguer::theme::ColorfulTheme;
+/* use dialoguer::theme::ColorfulTheme;
 use anyhow::Result;
+//use rtc::peer_connection::configuration::media_engine::MIME_TYPE_VP8;
+//use rtc::rtp_transceiver::rtp_sender::{RTCRtpCodec, RTCRtpCodecParameters};
+use webrtc::media_stream::MediaStreamTrack;
+//use rtc::peer_connection::configuration::media_engine::{MIME_TYPE_VP8, MediaEngine};
+//use rtc::rtp_transceiver::rtp_sender::{RTCRtpCodec, RTCRtpCodecParameters, RtpCodecKind};
 use webrtc::runtime::block_on;
 use dialoguer::*;
 use colored::*;
@@ -7,14 +12,19 @@ use std::sync::Arc;
 use signaler::command::DescriptionType;
 use signaler::client::Client as SignalClient;
 use futures::FutureExt;
+
 use webrtc::peer_connection::{
-        MediaEngine, 
-        RTCConfigurationBuilder, 
-        RTCIceServer, 
-        RTCSessionDescription, 
-        Registry, 
-        register_default_interceptors
+        //MediaEngine, 
+        MediaEngine, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
     };
+/* use rtc::rtp_transceiver::rtp_sender::{
+    RTCRtpCodec, RTCRtpCodecParameters, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind
+}; */
+//use rtc::shared::marshal::Unmarshal;
+use webrtc::rtp_transceiver::rtp_sender::*;
+use webrtc::media_stream::track_local::TrackLocal;
+use webrtc::media_stream::track_local::static_rtp::TrackLocalStaticRTP;
+//use webrtc::peer_connection::configuration::media_engine::{MIME_TYPE_VP8, MediaEngine};
 use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
 use webrtc::runtime::{channel, default_runtime};
 use dc::util::get_local_ip;
@@ -57,6 +67,40 @@ fn main() -> Result<()> {
 async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         let mut media = MediaEngine::default();
         media.register_default_codecs()?;
+        let video_codec = RTCRtpCodec {
+            mime_type: MIME_TYPE_VP8.to_owned(),
+            clock_rate: 90000,
+            channels: 0,
+            sdp_fmtp_line: "".to_owned(),
+            rtcp_feedback: vec![],
+        };
+
+        media.register_codec(
+            RTCRtpCodecParameters {
+                rtp_codec: video_codec.clone(),
+                payload_type: 96,
+                ..Default::default()
+            },
+            RtpCodecKind::Video,
+        )?;
+
+        let ssrc = rand::random::<u32>();
+        let video_track: Arc<TrackLocalStaticRTP> =
+        Arc::new(TrackLocalStaticRTP::new(MediaStreamTrack::new(
+            format!("webrtc-rs-stream-id-{}", RtpCodecKind::Video),
+            format!("webrtc-rs-track-id-{}", RtpCodecKind::Video),
+            format!("webrtc-rs-track-label-{}", RtpCodecKind::Video),
+            RtpCodecKind::Video,
+            vec![RTCRtpEncodingParameters {
+                rtp_coding_parameters: RTCRtpCodingParameters {
+                    ssrc: Some(ssrc),
+                    ..Default::default()
+                },
+                codec: video_codec,
+                ..Default::default()
+            }],
+        )));
+
         let (gather_tx, mut gather_rx) = channel::<()>(1);
         let (done_tx, mut done_rx) = channel::<()>(1);
         let runtime = default_runtime()
@@ -66,30 +110,12 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         let pc = PeerConnectionBuilder::new()
         .with_configuration(
             RTCConfigurationBuilder::new()
-            .with_ice_servers(
-                vec![
-                    RTCIceServer {
-                        urls: vec!["stun:fr-turn8.xirsys.com".to_owned()],
-                        ..Default::default()
-                    },
-                    RTCIceServer {
-                        username: "xrlEivlkdTCQvwPYbCRHDur872L9CNM7DlbAya3tEhbBcn7zMgFFN8q43pP_2v-4AAAAAGmxwT1nd296ZHlr".to_owned(),
-                        credential: "d05d03e4-1d7f-11f1-b1bb-be96737d4d7e".to_owned(),
-                        urls: vec![
-                            "turn:fr-turn8.xirsys.com:3478?transport=udp".to_owned(),
-                            "turn:fr-turn8.xirsys.com:80?transport=tcp".to_owned(),
-                            "turn:fr-turn8.xirsys.com:3478?transport=tcp".to_owned(), 
-                            "turns:fr-turn8.xirsys.com:443?transport=tcp".to_owned(),
-                            "turns:fr-turn8.xirsys.com:5349?transport=tcp".to_owned(),
-                            "turn:fr-turn8.xirsys.com:80?transport=udp".to_owned(),
-                        ]
-                    },
-                    /* RTCIceServer {
-                        urls: vec!["stun:stun.l.google.com:19302".to_owned()],
-                        ..Default::default()
-                    }, */
-                ]
-            )
+            .with_ice_servers(vec![RTCIceServer {
+                urls: vec![
+                    "stun:stun.l.google.com:19302".to_owned()
+                    ],
+                ..Default::default()
+            }])
             .build(),
         )
         .with_media_engine(media.clone()).with_interceptor_registry(registry)
@@ -152,4 +178,4 @@ fn display_init() {
     println!("{} {}", authors.italic().cyan(), date.italic().cyan());
     println!("");
     println!("");
-}
+} */

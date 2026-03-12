@@ -34,6 +34,11 @@ async fn async_main() -> Result<()> {
             println!("{}", (log as String).italic());
         }
     });
+    //let tx = signal_client.get_sender().unwrap();
+    //let pinger = tokio::spawn(async move {
+    //     signal_client.send_ping("").await;
+    //     tokio::time::sleep(std::time::Duration::from_millis(5000)).await;
+    //});
     println!("press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {

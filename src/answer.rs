@@ -33,10 +33,30 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     let pc = PeerConnectionBuilder::new()
     .with_configuration(
         RTCConfigurationBuilder::new()
-            .with_ice_servers(vec![RTCIceServer {
-                urls: vec!["stun:stun.l.google.com:19302".to_owned()],
-                ..Default::default()
-            }])
+            .with_ice_servers(
+                vec![
+                    RTCIceServer {
+                        urls: vec!["stun:fr-turn8.xirsys.com".to_owned()],
+                        ..Default::default()
+                    },
+                    RTCIceServer {
+                        username: "xrlEivlkdTCQvwPYbCRHDur872L9CNM7DlbAya3tEhbBcn7zMgFFN8q43pP_2v-4AAAAAGmxwT1nd296ZHlr".to_owned(),
+                        credential: "d05d03e4-1d7f-11f1-b1bb-be96737d4d7e".to_owned(),
+                        urls: vec![
+                            "turn:fr-turn8.xirsys.com:3478?transport=udp".to_owned(),
+                            "turn:fr-turn8.xirsys.com:80?transport=tcp".to_owned(),
+                            "turn:fr-turn8.xirsys.com:3478?transport=tcp".to_owned(), 
+                            "turns:fr-turn8.xirsys.com:443?transport=tcp".to_owned(),
+                            "turns:fr-turn8.xirsys.com:5349?transport=tcp".to_owned(),
+                            "turn:fr-turn8.xirsys.com:80?transport=udp".to_owned(),
+                        ]
+                    },
+                    /* RTCIceServer {
+                        urls: vec!["stun:stun.l.google.com:19302".to_owned()],
+                        ..Default::default()
+                    }, */
+                ]
+            )
             .build(),
     )
     .with_media_engine(media).with_interceptor_registry(registry)
