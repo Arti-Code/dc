@@ -75,7 +75,6 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     println!("{}", "ready!".to_string().blue().bold());
     let sd =signal_client.wait_data().await?;
     println!("offer received from {}", sd.sender);
-    //dbg!(&sd);
     let offer_sdp = serde_json::from_str::<RTCSessionDescription>(&sd.description)?;
     println!("offer sdp parsed, setting remote description...");
     pc.set_remote_description(offer_sdp).await?;

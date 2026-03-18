@@ -1,0 +1,1 @@
+C:\ffmpeg\bin\ffmpeg.exe -f dshow -i "video=HP Wide Vision HD Camera" -vcodec libvpx -cpu-used 5 -deadline 1 -g 10 -error-resilient 1 -r 30 -auto-alt-ref 1 -f rtp rtp://127.0.0.1:5008?pkt_size=1200

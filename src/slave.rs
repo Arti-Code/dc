@@ -126,7 +126,6 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         let payload = serde_json::to_string(&answer_sdp)?;
         signal_client.send_data(&sd.sender, payload, DescriptionType::Answer).await?;
         println!("sent answer to {}", sd.sender);
-        println!("press ctrl-c to stop");
         futures::select! {
             _ = done_rx.recv().fuse() => {
                 println!("{}", "data channel closed".to_string().red().bold());
@@ -137,7 +136,6 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                 println!();
                 pc.close().await?;
                 return Ok(false)
-                //break;
             }
         }
 }

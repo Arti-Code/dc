@@ -36,15 +36,6 @@ async fn async_main() -> Result<()> {
             .interact_text().unwrap();
             let restart: bool = false;
             process_answerer(&name, restart).await?;
-            /* loop {
-                if restart {
-                    println!("{}", "RESTARTING LISTENER".to_string().yellow().bold());
-                } else {
-                    println!("{}", "STARTING LISTENER".to_string().green().bold());
-                }
-                process_answerer(&name, restart).await?;
-                restart = true;
-            } */
         },
         _ => unreachable!(),
     }

@@ -22,9 +22,14 @@ pub struct CameraHandler {
 #[async_trait::async_trait]
 impl PeerConnectionEventHandler for CameraHandler {
     async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
-        println!("{}{}", "[ICE GATHERING STATE]: ".to_string().bold(), state.to_string().bold());
-        if state == RTCIceGatheringState::Complete {
-            let _ = self.gather_complete_tx.try_send(());
+        match state {
+            RTCIceGatheringState::Complete => {
+                println!("{}{}", "[ICE GATHERING STATE]: ".to_string().bold().green(), state.to_string().bold().green());
+                let _ = self.gather_complete_tx.try_send(());
+            },
+            _ => {
+                println!("{}{}", "[ICE GATHERING STATE]: ".to_string(), state.to_string());
+            }
         }
     }
 
@@ -42,16 +47,21 @@ impl PeerConnectionEventHandler for CameraHandler {
     } */
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
-        println!("{}{}", "[PEER CONNECTION]: ".to_string().bold(), state.to_string().bold());
+        let mut state_info = String::new();
         if state == RTCPeerConnectionState::Failed {
+            state_info = format!("{}{}", "[PEER CONNECTION]: ".to_string().bold().red(), state.to_string().bold().red());
             let _ = self.done_tx.try_send(());
         } else if state == RTCPeerConnectionState::Disconnected {
+            state_info = format!("{}{}", "[PEER CONNECTION]: ".to_string().bold().yellow(), state.to_string().bold().yellow());
             let _ = self.done_tx.try_send(());
         } else if state == RTCPeerConnectionState::Connected {
+            state_info = format!("{}{}", "[PEER CONNECTION]: ".to_string().bold().green(), state.to_string().bold().green());
             let _ = self.connected_tx.try_send(());
         } else if state == RTCPeerConnectionState::Closed {
+            state_info = format!("{}{}", "[PEER CONNECTION]: ".to_string().bold().yellow(), state.to_string().bold().yellow());
             let _ = self.done_tx.try_send(());
         }
+        println!("{}", &state_info);
     }
 
     async fn on_data_channel(&self, dc: Arc<dyn DataChannel>) {

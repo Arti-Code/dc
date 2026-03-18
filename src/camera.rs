@@ -177,7 +177,6 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         let answer = pc.create_answer(None).await?;
         pc.set_local_description(answer).await?;
         let _ = gather_rx.recv().await;
-        println!("gathering completed");
         let answer_sdp = pc.local_description().await
         .ok_or_else(|| anyhow::anyhow!("no local description"))?;
         let payload = serde_json::to_string(&answer_sdp)?;
