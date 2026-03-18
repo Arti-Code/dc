@@ -38,13 +38,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "aho-corasick"
+version = "1.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ddd31a130427c27518df266943a5308ed92d4b226cc639f5a8f1002816174301"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43d5b281e737544384e969a5ccad3f1cdd24b48086a0fc1b2a5262a26b8f4f4a"
 dependencies = [
  "anstyle",
- "anstyle-parse",
+ "anstyle-parse 0.2.7",
+ "anstyle-query",
+ "anstyle-wincon",
+ "colorchoice",
+ "is_terminal_polyfill",
+ "utf8parse",
+]
+
+[[package]]
+name = "anstream"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "824a212faf96e9acacdbd09febd34438f8f711fb84e09a8916013cd7815ca28d"
+dependencies = [
+ "anstyle",
+ "anstyle-parse 1.0.0",
  "anstyle-query",
  "anstyle-wincon",
  "colorchoice",
@@ -63,6 +87,15 @@ name = "anstyle-parse"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7644824f0aa2c7b9384579234ef10eb7efb6a0deb83f9630a49594dd9c15c2"
+dependencies = [
+ "utf8parse",
+]
+
+[[package]]
+name = "anstyle-parse"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e"
 dependencies = [
  "utf8parse",
 ]
@@ -366,9 +399,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.60"
+version = "4.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2797f34da339ce31042b27d23607e051786132987f595b02ba4f6a6dffb7030a"
+checksum = "b193af5b67834b676abd72466a96c1024e6a6ad978a1f484bd90b85c94041351"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -376,11 +409,11 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.60"
+version = "4.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24a241312cea5059b13574bb9b3861cabf758b879c15190b37b6d6fd63ab6876"
+checksum = "714a53001bf66416adb0e2ef5ac857140e7dc3a0c48fb28b2f10762fc4b5069f"
 dependencies = [
- "anstream",
+ "anstream 1.0.0",
  "anstyle",
  "clap_lex",
  "strsim",
@@ -388,9 +421,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.55"
+version = "4.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a92793da1a46a5f2a02a6f4c46c6496b28c43638adea8306fcb0caa1634f24e5"
+checksum = "1110bd8a634a1ab8cb04345d8d878267d57c3cf1b38d91b71af6686408bbca6a"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -548,18 +581,21 @@ checksum = "d7a1e2f27636f116493b8b860f5546edb47c8d8f8ea73e1d2a20be88e28d1fea"
 
 [[package]]
 name = "dc"
-version = "0.5.6"
+version = "0.6.9"
 dependencies = [
  "anyhow",
  "async-trait",
+ "base64",
  "bytes",
  "clap",
  "colored",
  "ctrlc",
  "dialoguer",
  "embed-resource",
+ "env_logger",
  "futures",
  "rand 0.10.0",
+ "rtc",
  "serde_json",
  "signaler",
  "tokio",
@@ -698,9 +734,9 @@ dependencies = [
 
 [[package]]
 name = "embed-resource"
-version = "3.0.6"
+version = "3.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55a075fc573c64510038d7ee9abc7990635863992f83ebc52c8b433b8411a02e"
+checksum = "47ec73ddcf6b7f23173d5c3c5a32b5507dc0a734de7730aa14abc5d5e296bb5f"
 dependencies = [
  "cc",
  "memchr",
@@ -715,6 +751,29 @@ name = "encode_unicode"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
+
+[[package]]
+name = "env_filter"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a1c3cc8e57274ec99de65301228b537f1e4eedc1b8e0f9411c6caac8ae7308f"
+dependencies = [
+ "log",
+ "regex",
+]
+
+[[package]]
+name = "env_logger"
+version = "0.11.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2daee4ea451f429a58296525ddf28b45a3b64f1acf6587e2067437bb11e218d"
+dependencies = [
+ "anstream 0.6.21",
+ "anstyle",
+ "env_filter",
+ "jiff",
+ "log",
+]
 
 [[package]]
 name = "equivalent"
@@ -1136,6 +1195,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92ecc6618181def0457392ccd0ee51198e065e016d1d527a7ac1b6dc7c1f09d2"
 
 [[package]]
+name = "jiff"
+version = "0.2.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a3546dc96b6d42c5f24902af9e2538e82e39ad350b0c766eb3fbf2d8f3d8359"
+dependencies = [
+ "jiff-static",
+ "log",
+ "portable-atomic",
+ "portable-atomic-util",
+ "serde_core",
+]
+
+[[package]]
+name = "jiff-static"
+version = "0.2.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a8c8b344124222efd714b73bb41f8b5120b27a7cc1c75593a6ff768d9d05aa4"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.91"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1499,6 +1582,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "portable-atomic"
+version = "1.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c33a9471896f1c69cecef8d20cbe2f7accd12527ce60845ff44c153bb2a21b49"
+
+[[package]]
+name = "portable-atomic-util"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a9db96d7fa8782dd8c15ce32ffe8680bbd1e978a43bf51a34d39483540495f5"
+dependencies = [
+ "portable-atomic",
+]
+
+[[package]]
 name = "potential_utf"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1572,9 +1670,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.44"
+version = "1.0.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21b2ebcf727b7760c461f091f9f0f539b77b8e87f2fd88131e7f1b433b3cece4"
+checksum = "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924"
 dependencies = [
  "proc-macro2",
 ]
@@ -1673,6 +1771,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex"
+version = "1.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e10754a14b9137dd7b1e3e5b0493cc9171fdd105e0ab477f51b72e7f3ac0e276"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-automata",
+ "regex-syntax",
+]
+
+[[package]]
+name = "regex-automata"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e1dd4122fc1595e8162618945476892eefca7b88c52820e74af6262213cae8f"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-syntax",
+]
+
+[[package]]
+name = "regex-syntax"
+version = "0.8.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
+
+[[package]]
 name = "rend"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1738,7 +1865,8 @@ dependencies = [
 [[package]]
 name = "rtc"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ac1b7092bf69781b30b983d0f2c689f4289a110990ad59c43e561f2ff8fd724"
 dependencies = [
  "bytes",
  "hex",
@@ -1772,7 +1900,8 @@ dependencies = [
 [[package]]
 name = "rtc-datachannel"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19b532151afaf5f8af7f36b8a57e687dd5ed238117cd29d4bf3a3f68fa8fe035"
 dependencies = [
  "bytes",
  "log",
@@ -1784,7 +1913,8 @@ dependencies = [
 [[package]]
 name = "rtc-dtls"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "067a19d0491fa2b09363bf9fdab2b3889447498844da092f875a1de9968750d0"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -1817,7 +1947,8 @@ dependencies = [
 [[package]]
 name = "rtc-ice"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9c90a85ecfc2b18ee7697342974afa55d36667d9ca7bec3a5eae63322da997c"
 dependencies = [
  "bytes",
  "crc",
@@ -1835,7 +1966,8 @@ dependencies = [
 [[package]]
 name = "rtc-interceptor"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5d531f43e290ee72bc782225ecb23d82b38994d69b6c8db9fbdc8eed07ed35e"
 dependencies = [
  "log",
  "rand 0.9.2",
@@ -1849,7 +1981,8 @@ dependencies = [
 [[package]]
 name = "rtc-interceptor-derive"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b39d78fc2ae7d5e99881d6604a972e99d97d839e5b3d0668018f82f0faa9bfb7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1859,7 +1992,8 @@ dependencies = [
 [[package]]
 name = "rtc-mdns"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57deeaa15ece574bf4b6ecd697e4b036aff0bc042e56fb811921eef063a2fdd5"
 dependencies = [
  "bytes",
  "log",
@@ -1871,7 +2005,8 @@ dependencies = [
 [[package]]
 name = "rtc-media"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f73afea835cfb207f22f4a22952538e3c7cc0ab14dee913b702134178adf2462"
 dependencies = [
  "byteorder",
  "bytes",
@@ -1884,7 +2019,8 @@ dependencies = [
 [[package]]
 name = "rtc-rtcp"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b922f475a00c6f853b0c4a3d66c9984fceed368f56dba5fe82af3aff1c77edc7"
 dependencies = [
  "bytes",
  "rtc-shared",
@@ -1893,7 +2029,8 @@ dependencies = [
 [[package]]
 name = "rtc-rtp"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1076beeb0f13d4d38e7fe23c46896de638eeea9a7f2cb13209c31c42d37fe290"
 dependencies = [
  "bytes",
  "memchr",
@@ -1905,7 +2042,8 @@ dependencies = [
 [[package]]
 name = "rtc-sctp"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d63968f1f8c2c016d04fc16c5a43608772e5b02f9657eed659273dd01b825f7"
 dependencies = [
  "bytes",
  "crc",
@@ -1919,7 +2057,8 @@ dependencies = [
 [[package]]
 name = "rtc-sdp"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8598470804b29e4f3d3486226b43f84db6c0f64311bd1c9e8ec1d9172c3e4c3"
 dependencies = [
  "rand 0.9.2",
  "rtc-shared",
@@ -1929,7 +2068,8 @@ dependencies = [
 [[package]]
 name = "rtc-shared"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58b76f42332957719c1922bc9a4ba67ed348d12fca8705c3df171c44058d8f90"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -1950,7 +2090,8 @@ dependencies = [
 [[package]]
 name = "rtc-srtp"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91a79f9ac2db5fb54358d6ec6d51dcee64088507f2035b743f28dc9eabac7de5"
 dependencies = [
  "aead",
  "aes",
@@ -1969,7 +2110,8 @@ dependencies = [
 [[package]]
 name = "rtc-stun"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f4492e747d6468f0e69f5e186639b4075cb777a9a983be5c7d51493c2a05245"
 dependencies = [
  "base64",
  "bytes",
@@ -1987,7 +2129,8 @@ dependencies = [
 [[package]]
 name = "rtc-turn"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c52c4a3b6d9fea3cb7d1365ff88ee1610ac6c57d0ee126b3b4a26b5debdda6f"
 dependencies = [
  "bytes",
  "log",
@@ -2206,10 +2349,9 @@ dependencies = [
 
 [[package]]
 name = "signaler"
-version = "0.5.1"
+version = "0.5.5"
 dependencies = [
  "anyhow",
- "colored",
  "futures-util",
  "rand 0.10.0",
  "serde",
@@ -2676,9 +2818,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.21.0"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b672338555252d43fd2240c714dc444b8c6fb0a5c5335e65a07bba7742735ddb"
+checksum = "a68d3c8f01c0cfa54a75291d83601161799e4a89a39e0929f4b0354d88757a37"
 dependencies = [
  "getrandom 0.4.1",
  "js-sys",
@@ -2823,7 +2965,8 @@ dependencies = [
 [[package]]
 name = "webrtc"
 version = "0.20.0-alpha.1"
-source = "git+https://github.com/webrtc-rs/webrtc.git?branch=master#2adda95c26e3d48269701ac0cd6ef4cab761cb47"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c747ddba952c11f0847312a6c56fdcec9b89258937e5b5a35c20110d2670304"
 dependencies = [
  "async-trait",
  "bytes",

@@ -2,13 +2,7 @@ use bytes::BytesMut;
 use dialoguer::theme::ColorfulTheme;
 use anyhow::Result;
 use rtc::peer_connection::configuration::media_engine::MIME_TYPE_VP8;
-use rtc::rtp_transceiver::rtp_sender::{
-    RTCRtpCodec, 
-    RTCRtpCodecParameters, 
-    RTCRtpCodingParameters, 
-    RTCRtpEncodingParameters, 
-    RtpCodecKind
-};
+use rtc::rtp_transceiver::rtp_sender::{RTCRtpCodec, RTCRtpCodecParameters, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind};
 use rtc::shared::marshal::Unmarshal;
 use rtc::rtp;
 use webrtc::media_stream::MediaStreamTrack;
@@ -17,18 +11,13 @@ use webrtc::runtime::{AsyncUdpSocket, block_on};
 use dialoguer::*;
 use colored::*;
 use std::sync::Arc;
-use std::time::Duration;
 use signaler::command::DescriptionType;
 use signaler::client::Client as SignalClient;
 use futures::FutureExt;
+
 use webrtc::peer_connection::{
-    MediaEngine, 
-    RTCConfigurationBuilder, 
-    RTCIceServer, 
-    RTCSessionDescription, 
-    Registry, 
-    register_default_interceptors
-};
+        MediaEngine, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
+    };
 use webrtc::media_stream::track_local::static_rtp::TrackLocalStaticRTP;
 use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
 use webrtc::runtime::{channel, default_runtime};
@@ -36,7 +25,6 @@ use dc::util::get_local_ip;
 use dc::event_handler::*;
 use tokio::sync::mpsc::{self, Receiver};
 
-const VIDEO_LISTENER: &'static str = "127.0.0.1:5008";
 
 fn main() -> Result<()> {
     let (ctrlc_tx, mut ctrlc_rx) = mpsc::channel::<()>(1);
@@ -44,7 +32,7 @@ fn main() -> Result<()> {
         let _ = ctrlc_tx.try_send(());
     })?;
     display_init();
-    std::thread::sleep(Duration::from_millis(500));
+    std::thread::sleep(std::time::Duration::from_millis(500));
     let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
     .default("CAMERA".to_string()).allow_empty(false).show_default(true)
     .interact_text().unwrap();
@@ -52,17 +40,17 @@ fn main() -> Result<()> {
          match block_on(async_main(name.clone(), &mut ctrlc_rx)) {
              Ok(false) => {
                 println!("{}", "closing...".red().bold());
-                std::thread::sleep(Duration::from_millis(3000));
+                std::thread::sleep(std::time::Duration::from_millis(3000));
                 break
             },
              Ok(true) => {
                  println!("{}", "restarting...".yellow().bold());
-                 std::thread::sleep(Duration::from_millis(500));
+                 std::thread::sleep(std::time::Duration::from_millis(500));
              }
              Err(e) => {
                  println!("error: {}", e);
                  println!("{}", "restarting...".bright_red().bold());
-                 std::thread::sleep(Duration::from_millis(500));
+                 std::thread::sleep(std::time::Duration::from_millis(500));
              }
          }
     }
@@ -161,15 +149,15 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         .with_udp_addrs(vec![format!("{}:0", get_local_ip())])
         .build()
         .await?;
-
         pc.add_track(Arc::clone(&video_track) as Arc<dyn TrackLocal>).await?;
 
         let url = "ws://yamanote.proxy.rlwy.net:25134";
         let mut signal_client = SignalClient::new(&name, url);
         signal_client.connect().await?;
-        println!("{}", "connection ready!".to_string().blue().bold());
+        println!("{}", "ready!".to_string().blue().bold());
         let sd =signal_client.wait_data().await?;
         println!("offer received from {}", sd.sender);
+        //dbg!(&sd);
         let offer_sdp = serde_json::from_str::<RTCSessionDescription>(&sd.description)?;
         println!("offer sdp parsed, setting remote description...");
         pc.set_remote_description(offer_sdp).await?;
@@ -184,13 +172,14 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         signal_client.send_data(&sd.sender, payload, DescriptionType::Answer).await?;
         println!("sent answer to {}", sd.sender);
 
-        let std_listener = std::net::UdpSocket::bind(VIDEO_LISTENER)?;
+        let std_listener = std::net::UdpSocket::bind("127.0.0.1:5008")?;
         let listener: Arc<dyn AsyncUdpSocket> = runtime.wrap_udp_socket(std_listener)?;
-        println!("listening for RTP on {}", VIDEO_LISTENER);
+        println!("Listening for RTP on 127.0.0.1:5008");
         
         println!("waiting for peer connection...");
         connected_rx.recv().await;
-        println!("forwarding RTP");
+
+        println!("Connected! Forwarding RTP to browser.");
 
         let (fwd_done_tx, mut fwd_done_rx) = channel::<()>(1);
         runtime.spawn(Box::pin(async move {
@@ -245,7 +234,7 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
 fn display_init() {
     let ver = env!("CARGO_PKG_VERSION").to_string();
     let authors = env!("CARGO_PKG_AUTHORS").to_string();
-    let title = format!("-= WebRTC Camera =-");
+    let title = format!("-= WebRTC Camera2 =-");
     let date = "2026y".to_string();
     println!("");
     println!("{}", title.underline().bold().green());

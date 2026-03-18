@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.5.6"
+version = "0.6.9"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -11,31 +11,42 @@ ctrlc = "3.5.2"
 serde_json = "1.0.149"
 rand = "0.10.0"
 
-#webrtc = {git = "https://github.com/webrtc-rs/webrtc.git", rev = "2adda95c26e3d48269701ac0cd6ef4cab761cb47"}
-webrtc = {git = "https://github.com/webrtc-rs/webrtc.git", branch = "master"}
+#webrtc = {git = "https://github.com/webrtc-rs/webrtc.git", branch = "master"}
 signaler = {path = "../ws"}
 bytes = "1.11.1"
-clap = {version="4.5.60", features=["derive"]}
+clap = { version = "4.6.0", features = ["derive"] }
 futures = "0.3.32"
 async-trait = "0.1.89"
 dialoguer = "0.12.0"
 colored = "3.1.1"
+webrtc = "=0.20.0-alpha.1"
+rtc = "=0.20.0-alpha.1"
+base64 = "0.22.1"
+env_logger = "0.11.9"
 
 [build-dependencies]
-embed-resource = "3.0.6"
+embed-resource = "3.0.7"
 
 [[bin]]
 name="dc"
 path="src/main.rs"
 
 [[bin]]
-name="waiter"
-path="src/waiter.rs"
+name="slave"
+path="src/slave.rs"
 
 [[bin]]
 name = "logger"
 path = "src/logger.rs"
 
-#[[bin]]
-#name = "camera"
-#path = "src/camera.rs"
+[[bin]]
+name = "camera"
+path = "src/camera.rs"
+
+[[bin]]
+name = "rtp"
+path = "src/rtp_to_webrtc.rs"
+
+[[bin]]
+name = "camera2"
+path = "src/camera2.rs"

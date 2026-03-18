@@ -54,22 +54,26 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
                             "turn:fr-turn8.xirsys.com:80?transport=udp".to_owned(),
                         ]
                     },
-                    /* RTCIceServer {
+                    RTCIceServer {
                         urls: vec!["stun:stun.l.google.com:19302".to_owned()],
                         ..Default::default()
-                    }, */
+                    },
                 ]
             )
             .build(),
     )
-    .with_media_engine(media).with_interceptor_registry(registry)
+    .with_media_engine(media)
+    .with_interceptor_registry(registry)
     .with_handler(Arc::new(OfferHandler {
         gather_complete_tx: gather_tx,
         done_tx: done_tx.clone(),
-    })).with_runtime(runtime.clone())
+    }))
+    .with_runtime(runtime.clone())
     .with_udp_addrs(vec![format!("{}:0", get_local_ip())])
     .build().await?;
+
     let dc = pc.create_data_channel("data", None).await?;
+    
     runtime.spawn(Box::pin(async move {
         let mut opened = false;
         let mut send_timer = Box::pin(sleep(Duration::from_secs(5)));         
@@ -126,7 +130,6 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
     let answer_sdp = serde_json::from_str(&answer_str)?;
     pc.set_remote_description(answer_sdp).await?;
     println!("set remote description");
-    println!("press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
             println!("{}", "data channel closed".to_string().red().bold());

@@ -51,10 +51,10 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
                             "turn:fr-turn8.xirsys.com:80?transport=udp".to_owned(),
                         ]
                     },
-                    /* RTCIceServer {
+                    RTCIceServer {
                         urls: vec!["stun:stun.l.google.com:19302".to_owned()],
                         ..Default::default()
-                    }, */
+                    },
                 ]
             )
             .build(),
@@ -65,7 +65,8 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
         gather_complete_tx: gather_tx,
         done_tx: done_tx.clone(),
     }))
-    .with_runtime(runtime.clone()).with_udp_addrs(vec![format!("{}:0", get_local_ip())])
+    .with_runtime(runtime.clone())
+    .with_udp_addrs(vec![format!("{}:0", get_local_ip())])
     .build().await?;
 
     let url = "ws://yamanote.proxy.rlwy.net:25134";
@@ -87,7 +88,6 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     let payload = serde_json::to_string(&answer_sdp)?;
     signal_client.send_data(&sd.sender, payload, DescriptionType::Answer).await?;
     println!("sent answer to {}", sd.sender);
-    println!("press ctrl-c to stop");
     futures::select! {
         _ = done_rx.recv().fuse() => {
             println!("peer connection failed or data channel closed.");

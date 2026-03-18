@@ -34,12 +34,7 @@ async fn async_main() -> Result<()> {
             println!("{}", (log as String).italic());
         }
     });
-    //let tx = signal_client.get_sender().unwrap();
-    //let pinger = tokio::spawn(async move {
-    //     signal_client.send_ping("").await;
-    //     tokio::time::sleep(std::time::Duration::from_millis(5000)).await;
-    //});
-    println!("press ctrl-c to stop");
+
     futures::select! {
         _ = done_rx.recv().fuse() => {
             println!("{}", "closing".to_string().yellow().bold());
@@ -58,7 +53,7 @@ async fn async_main() -> Result<()> {
 fn display_init() {
     let ver = env!("CARGO_PKG_VERSION").to_string();
     let authors = env!("CARGO_PKG_AUTHORS").to_string();
-    let title = format!("-=Signal Server Logger=-");
+    let title = format!("--== Signaling Server Logger ==--");
     let date = "2026y".to_string();
     println!("");
     println!("{}", title.underline().bold().green());
