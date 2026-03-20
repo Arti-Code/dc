@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.7.0"
+version = "0.7.2"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -43,10 +43,10 @@ path = "src/logger.rs"
 name = "camera"
 path = "src/camera.rs"
 
-[[bin]]
-name = "rtp"
-path = "src/rtp_to_webrtc.rs"
-
-[[bin]]
-name = "camera2"
-path = "src/camera2.rs"
+#[[bin]]
+#name = "rtp"
+#path = "src/rtp_to_webrtc.rs"
+#
+#[[bin]]
+#name = "camera2"
+#path = "src/camera2.rs"
