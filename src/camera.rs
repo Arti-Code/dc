@@ -1,39 +1,23 @@
 use bytes::BytesMut;
 use dialoguer::theme::ColorfulTheme;
 use anyhow::Result;
-use rtc::peer_connection::configuration::media_engine::MIME_TYPE_VP8;
-use rtc::rtp_transceiver::rtp_sender::{
+use rtc::{peer_connection::configuration::media_engine::MIME_TYPE_VP8, rtp, rtp_transceiver::rtp_sender::{
     RTCRtpCodec, 
     RTCRtpCodecParameters, 
     RTCRtpCodingParameters, 
     RTCRtpEncodingParameters, 
     RtpCodecKind
-};
-use rtc::shared::marshal::Unmarshal;
-use rtc::rtp;
-use webrtc::media_stream::MediaStreamTrack;
-use webrtc::media_stream::track_local::TrackLocal;
-use webrtc::runtime::{AsyncUdpSocket, block_on};
+}, shared::marshal::Unmarshal};
+use webrtc::{media_stream::{MediaStreamTrack, track_local::TrackLocal}, runtime::{AsyncUdpSocket, block_on}};
 use dialoguer::*;
 use colored::*;
-use std::sync::Arc;
-use std::time::Duration;
-use signaler::command::DescriptionType;
-use signaler::client::Client as SignalClient;
+use std::{sync::Arc, time::Duration};
+use signaler::{client::Client as SignalClient, command::DescriptionType};
 use futures::FutureExt;
-use webrtc::peer_connection::{
-    MediaEngine, 
-    RTCConfigurationBuilder, 
-    RTCIceServer, 
-    RTCSessionDescription, 
-    Registry, 
-    register_default_interceptors
-};
-use webrtc::media_stream::track_local::static_rtp::TrackLocalStaticRTP;
-use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
-use webrtc::runtime::{channel, default_runtime};
-use dc::util::get_local_ip;
-use dc::event_handler::*;
+use webrtc::{media_stream::track_local::static_rtp::TrackLocalStaticRTP, peer_connection::{
+    MediaEngine, PeerConnection, PeerConnectionBuilder, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
+}, runtime::{channel, default_runtime}};
+use dc::{event_handler::*, util::get_local_ip};
 use tokio::sync::mpsc::{self, Receiver};
 
 const VIDEO_LISTENER: &'static str = "127.0.0.1:5008";

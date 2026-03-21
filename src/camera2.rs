@@ -1,28 +1,21 @@
 use bytes::BytesMut;
 use dialoguer::theme::ColorfulTheme;
 use anyhow::Result;
-use rtc::peer_connection::configuration::media_engine::MIME_TYPE_VP8;
-use rtc::rtp_transceiver::rtp_sender::{RTCRtpCodec, RTCRtpCodecParameters, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind};
-use rtc::shared::marshal::Unmarshal;
-use rtc::rtp;
-use webrtc::media_stream::MediaStreamTrack;
-use webrtc::media_stream::track_local::TrackLocal;
-use webrtc::runtime::{AsyncUdpSocket, block_on};
+use rtc::{peer_connection::configuration::media_engine::MIME_TYPE_VP8, rtp, rtp_transceiver::rtp_sender::{RTCRtpCodec, RTCRtpCodecParameters, RTCRtpCodingParameters, RTCRtpEncodingParameters, RtpCodecKind}, shared::marshal::Unmarshal};
+use tokio::time::sleep;
+use webrtc::{data_channel::DataChannelEvent, media_stream::{MediaStreamTrack, track_local::TrackLocal}, runtime::{AsyncUdpSocket, block_on}};
 use dialoguer::*;
 use colored::*;
-use std::sync::Arc;
-use signaler::command::DescriptionType;
-use signaler::client::Client as SignalClient;
+use std::{sync::Arc, time::Duration};
+use signaler::{client::Client as SignalClient, command::{DescriptionType, generate_description}};
 use futures::FutureExt;
-
-use webrtc::peer_connection::{
-        MediaEngine, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
-    };
-use webrtc::media_stream::track_local::static_rtp::TrackLocalStaticRTP;
-use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
-use webrtc::runtime::{channel, default_runtime};
-use dc::util::get_local_ip;
-use dc::event_handler::*;
+use webrtc::{
+    media_stream::track_local::static_rtp::TrackLocalStaticRTP, 
+    peer_connection::{
+        MediaEngine, PeerConnection, PeerConnectionBuilder, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
+    }, runtime::{channel, default_runtime}
+};
+use dc::{event_handler::*, util::get_local_ip};
 use tokio::sync::mpsc::{self, Receiver};
 
 
@@ -149,6 +142,9 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         .with_udp_addrs(vec![format!("{}:0", get_local_ip())])
         .build()
         .await?;
+
+        let dc = pc.create_data_channel("data", None).await?;
+
         pc.add_track(Arc::clone(&video_track) as Arc<dyn TrackLocal>).await?;
 
         let url = "ws://yamanote.proxy.rlwy.net:25134";
@@ -182,7 +178,7 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         println!("Connected! Forwarding RTP to browser.");
 
         let (fwd_done_tx, mut fwd_done_rx) = channel::<()>(1);
-        runtime.spawn(Box::pin(async move {
+        let _ = runtime.spawn(Box::pin(async move {
             let mut buf = vec![0u8; 1600];
             loop {
                 match listener.recv_from(&mut buf).await {
@@ -210,6 +206,48 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
             }
             let _ = fwd_done_tx.try_send(());
         }));
+
+        
+        let _ = runtime.spawn(Box::pin(async move {
+            let mut opened = false;
+            let mut send_timer = Box::pin(sleep(Duration::from_secs(5)));         
+            loop {
+                if opened {
+                    futures::select! {
+                        event = dc.poll().fuse() => {
+                            match event {
+                                Some(DataChannelEvent::OnMessage(msg)) => {
+                                    let text = String::from_utf8(msg.data.to_vec()).unwrap_or_default();
+                                    println!("==> '{text}'");
+                                }
+                                Some(DataChannelEvent::OnClose) | None => break,
+                                _ => {}
+                            }
+                        }
+                        _ = send_timer.as_mut().fuse() => {
+                            let message = generate_description(32);
+                            println!("<== '{message}'");
+                            let _ = dc.send(BytesMut::from(message.as_bytes())).await;
+                            send_timer = Box::pin(sleep(Duration::from_secs(5)));
+                        }
+                    }
+                } else {
+                    match dc.poll().await {
+                        Some(DataChannelEvent::OnOpen) => {
+                            println!("{}", "datachannel open".to_string().green().bold());
+                            opened = true;
+                            send_timer = Box::pin(sleep(Duration::from_secs(5)));
+                        }
+                        Some(DataChannelEvent::OnClose) | None => break,
+                        _ => {}
+                    }
+                }
+            }
+        
+            println!("{}", "exit datachannel loop".to_string().yellow().bold());
+        }));
+
+        
 
         futures::select! {
             _ = done_rx.recv().fuse() => {

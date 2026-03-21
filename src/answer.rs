@@ -1,22 +1,14 @@
 use std::sync::Arc;
-use signaler::command::DescriptionType;
-use signaler::client::Client as SignalClient;
+use signaler::{client::Client as SignalClient, command::DescriptionType};
 use futures::FutureExt;
-use webrtc::peer_connection::{
-        MediaEngine, 
-        RTCConfigurationBuilder, 
-        RTCIceServer, 
-        RTCSessionDescription, 
-        Registry, 
-        register_default_interceptors
-    };
-use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
-use webrtc::runtime::{channel, default_runtime};
+use webrtc::{peer_connection::{
+        MediaEngine, PeerConnection, PeerConnectionBuilder, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
+    }, runtime::{channel, default_runtime}};
 use crate::util::get_local_ip;
 use crate::event_handler::*;
 use colored::*;
 
-pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
+pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<bool> {
     let mut media = MediaEngine::default();
     media.register_default_codecs()?;
     let (ctrlc_tx, mut ctrlc_rx) = channel::<()>(1);
@@ -59,7 +51,8 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
             )
             .build(),
     )
-    .with_media_engine(media).with_interceptor_registry(registry)
+    .with_media_engine(media)
+    .with_interceptor_registry(registry)
     .with_handler(Arc::new(AnswerHandler {
         runtime: runtime.clone(),
         gather_complete_tx: gather_tx,
@@ -72,7 +65,7 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     let url = "ws://yamanote.proxy.rlwy.net:25134";
     let mut signal_client = SignalClient::new(&name, url);
     signal_client.connect().await?;
-    println!("{}", "ready!".to_string().blue().bold());
+    println!("{}", "connection ready!".to_string().blue().bold());
     let sd =signal_client.wait_data().await?;
     println!("offer received from {}", sd.sender);
     let offer_sdp = serde_json::from_str::<RTCSessionDescription>(&sd.description)?;
@@ -90,11 +83,15 @@ pub async fn process_answerer(name: &str, restart: bool) -> anyhow::Result<()> {
     futures::select! {
         _ = done_rx.recv().fuse() => {
             println!("peer connection failed or data channel closed.");
+            pc.close().await?;
+            return Ok(true);
         }
         _ = ctrlc_rx.recv().fuse() => {
             println!();
+            pc.close().await?;
+            return Ok(false);
         }
     }
-    pc.close().await?;
-    Ok(())
+    //pc.close().await?;
+    //Ok(())
 }

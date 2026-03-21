@@ -5,7 +5,7 @@ use futures::FutureExt;
 //use signaler::command::generate_description;
 use webrtc::{
     data_channel::{DataChannel, DataChannelEvent}, 
-    peer_connection::{PeerConnectionEventHandler, RTCIceGatheringState, RTCPeerConnectionState}, 
+    peer_connection::{PeerConnectionEventHandler, RTCIceGatheringState, RTCPeerConnectionState, RTCSignalingState}, 
     runtime::{Runtime, Sender, sleep}
 };
 use colored::*;
@@ -21,6 +21,21 @@ pub struct CameraHandler {
 
 #[async_trait::async_trait]
 impl PeerConnectionEventHandler for CameraHandler {
+
+    async fn on_negotiation_needed(&self) {
+        println!("[NEGOTIATION]: needed");
+    }
+
+    async fn on_signaling_state_change(&self, state: RTCSignalingState) {
+        match state {
+            RTCSignalingState::Closed => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::HaveLocalOffer => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::HaveRemoteOffer => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::Stable => println!("{}{}", "[SIGNALING STATE]: ".to_string().green(), state.to_string().green()),
+            _ => {},
+        }
+    }
+
     async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
         match state {
             RTCIceGatheringState::Complete => {
@@ -32,19 +47,6 @@ impl PeerConnectionEventHandler for CameraHandler {
             }
         }
     }
-
-    /* async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
-        println!("Peer Connection State has changed: {state}");
-        match state {
-            RTCPeerConnectionState::Connected => {
-                let _ = self.connected_tx.try_send(());
-            }
-            RTCPeerConnectionState::Failed | RTCPeerConnectionState::Closed => {
-                let _ = self.done_tx.try_send(());
-            }
-            _ => {}
-        }
-    } */
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
         let state_info: String;
@@ -157,12 +159,39 @@ pub struct OfferHandler {
 
 #[async_trait::async_trait]
 impl PeerConnectionEventHandler for OfferHandler {
+
+    async fn on_negotiation_needed(&self) {
+        println!("[NEGOTIATION]: needed");
+    }
+
+    async fn on_signaling_state_change(&self, state: RTCSignalingState) {
+        match state {
+            RTCSignalingState::Closed => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::HaveLocalOffer => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::HaveRemoteOffer => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::Stable => println!("{}{}", "[SIGNALING STATE]: ".to_string().green(), state.to_string().green()),
+            _ => {},
+        }
+    }
+
     async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
+        match state {
+            RTCIceGatheringState::Complete => {
+                println!("{}{}", "[ICE GATHERING STATE]: ".to_string().bold().green(), state.to_string().bold().green());
+                let _ = self.gather_complete_tx.try_send(());
+            },
+            _ => {
+                println!("{}{}", "[ICE GATHERING STATE]: ".to_string(), state.to_string());
+            }
+        }
+    }
+
+    /* async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
         println!("ice gathering state: {state}");
         if state == RTCIceGatheringState::Complete {
             let _ = self.gather_complete_tx.try_send(());
         }
-    }
+    } */
 
     async fn on_connection_state_change(&self, state: RTCPeerConnectionState) {
         let state_info: String;
@@ -206,10 +235,29 @@ pub struct AnswerHandler {
 
 #[async_trait::async_trait]
 impl PeerConnectionEventHandler for AnswerHandler {
+
+    async fn on_negotiation_needed(&self) {
+        println!("[NEGOTIATION]: needed");
+    }
+
+    async fn on_signaling_state_change(&self, state: RTCSignalingState) {
+        match state {
+            RTCSignalingState::Closed => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::HaveLocalOffer => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::HaveRemoteOffer => println!("{}{}", "[SIGNALING STATE]: ".to_string(), state.to_string()),
+            RTCSignalingState::Stable => println!("{}{}", "[SIGNALING STATE]: ".to_string().green(), state.to_string().green()),
+            _ => {},
+        }
+    }
     async fn on_ice_gathering_state_change(&self, state: RTCIceGatheringState) {
-        println!("ice gathering state: {state}");
-        if state == RTCIceGatheringState::Complete {
-            let _ = self.gather_complete_tx.try_send(());
+        match state {
+            RTCIceGatheringState::Complete => {
+                println!("{}{}", "[ICE GATHERING STATE]: ".to_string().bold().green(), state.to_string().bold().green());
+                let _ = self.gather_complete_tx.try_send(());
+            },
+            _ => {
+                println!("{}{}", "[ICE GATHERING STATE]: ".to_string(), state.to_string());
+            }
         }
     }
 

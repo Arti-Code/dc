@@ -11,7 +11,13 @@ fn main() -> Result<()> {
 }
 
 async fn async_main() -> Result<()> {
+    /* let (ctrlc_tx, mut ctrlc_rx) = mpsc::channel::<()>(1);
+    ctrlc::set_handler(move || {
+        let _ = ctrlc_tx.try_send(());
+    })?; */
+
     display_init();
+
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
     let sdp_modes = &[
         "ANSWER",
@@ -28,14 +34,24 @@ async fn async_main() -> Result<()> {
             let target: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter target")
             .default("ROBOT".to_string()).allow_empty(false).show_default(true)
             .interact_text().unwrap();
-            process_offerer(&name, &target).await?;
+            loop { 
+                match process_offerer(&name, &target).await? {
+                    true => continue,
+                    false => break,
+                }
+            }
         },
         0 => {
             let name: String = Input::with_theme(&ColorfulTheme::default()).with_prompt("enter name")
             .default("ROBOT".to_string()).allow_empty(false).show_default(true)
             .interact_text().unwrap();
             let restart: bool = false;
-            process_answerer(&name, restart).await?;
+            loop {
+                match process_answerer(&name, restart).await? {
+                    true => continue,
+                    false => break,
+                }
+            }
         },
         _ => unreachable!(),
     }

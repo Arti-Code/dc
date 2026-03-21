@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.7.2"
+version = "0.7.4"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -11,7 +11,6 @@ ctrlc = "3.5.2"
 serde_json = "1.0.149"
 rand = "0.10.0"
 
-#webrtc = {git = "https://github.com/webrtc-rs/webrtc.git", branch = "master"}
 signaler = {path = "../ws"}
 bytes = "1.11.1"
 clap = { version = "4.6.0", features = ["derive"] }
@@ -47,6 +46,6 @@ path = "src/camera.rs"
 #name = "rtp"
 #path = "src/rtp_to_webrtc.rs"
 #
-#[[bin]]
-#name = "camera2"
-#path = "src/camera2.rs"
+[[bin]]
+name = "camera2"
+path = "src/camera2.rs"

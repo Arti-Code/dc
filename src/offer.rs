@@ -1,27 +1,19 @@
-use std::sync::Arc;
-use std::time::Duration;
-use signaler::command::DescriptionType;
-use signaler::{client::Client as SignalClient, command::generate_description};
+use std::{sync::Arc, time::Duration};
+use signaler::{client::Client as SignalClient, command::{DescriptionType, generate_description}};
 use bytes::BytesMut;
 use futures::FutureExt;
 use webrtc::{
     data_channel::DataChannelEvent, 
     peer_connection::{
-        MediaEngine, 
-        RTCConfigurationBuilder, 
-        RTCIceServer, 
-        Registry, 
-        register_default_interceptors
-    }
+        MediaEngine, PeerConnection, PeerConnectionBuilder, RTCConfigurationBuilder, RTCIceServer, Registry, register_default_interceptors
+    }, runtime::{channel, default_runtime, sleep}
 };
-use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
-use webrtc::runtime::{channel, default_runtime, sleep};
 use crate::util::get_local_ip;
 use crate::event_handler::*;
 use colored::*;
 
 
-pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
+pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<bool> {
     let mut media = MediaEngine::default();
     media.register_default_codecs()?;
     let (ctrlc_tx, mut ctrlc_rx) = channel::<()>(1);
@@ -133,11 +125,15 @@ pub async fn process_offerer(name: &str, target: &str) -> anyhow::Result<()> {
     futures::select! {
         _ = done_rx.recv().fuse() => {
             println!("{}", "data channel closed".to_string().red().bold());
+            _ = pc.close();
+            return Ok(true);
         }
         _ = ctrlc_rx.recv().fuse() => {
             println!();
+            _ = pc.close();
+            return Ok(false);
         }
     }
-    pc.close().await?;
-    Ok(())
+    //pc.close().await?;
+    //Ok(())
 }

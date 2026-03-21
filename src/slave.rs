@@ -3,23 +3,13 @@ use anyhow::Result;
 use webrtc::runtime::block_on;
 use dialoguer::*;
 use colored::*;
-use std::sync::Arc;
-use std::time::Duration;
-use signaler::command::DescriptionType;
-use signaler::client::Client as SignalClient;
+use std::{sync::Arc, time::Duration};
+use signaler::{client::Client as SignalClient, command::DescriptionType};
 use futures::FutureExt;
-use webrtc::peer_connection::{
-        MediaEngine, 
-        RTCConfigurationBuilder, 
-        RTCIceServer, 
-        RTCSessionDescription, 
-        Registry, 
-        register_default_interceptors
-    };
-use webrtc::peer_connection::{PeerConnection, PeerConnectionBuilder};
-use webrtc::runtime::{channel, default_runtime};
-use dc::util::get_local_ip;
-use dc::event_handler::*;
+use webrtc::{peer_connection::{
+        MediaEngine, PeerConnection, PeerConnectionBuilder, RTCConfigurationBuilder, RTCIceServer, RTCSessionDescription, Registry, register_default_interceptors
+    }, runtime::{channel, default_runtime}};
+use dc::{event_handler::*, util::get_local_ip};
 use tokio::sync::mpsc::{self, Receiver};
 
 fn main() -> Result<()> {
