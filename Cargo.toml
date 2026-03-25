@@ -1,6 +1,6 @@
 [package]
 name = "dc"
-version = "0.7.4"
+version = "0.7.6"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
@@ -21,10 +21,10 @@ colored = "3.1.1"
 webrtc = "=0.20.0-alpha.1"
 rtc = "=0.20.0-alpha.1"
 base64 = "0.22.1"
-env_logger = "0.11.9"
+env_logger = "0.11.10"
 
 [build-dependencies]
-embed-resource = "3.0.7"
+embed-resource = "3.0.8"
 
 [[bin]]
 name="dc"

@@ -36,15 +36,15 @@ fn main() -> Result<()> {
                 std::thread::sleep(std::time::Duration::from_millis(3000));
                 break
             },
-             Ok(true) => {
-                 println!("{}", "restarting...".yellow().bold());
-                 std::thread::sleep(std::time::Duration::from_millis(500));
-             }
-             Err(e) => {
-                 println!("error: {}", e);
-                 println!("{}", "restarting...".bright_red().bold());
-                 std::thread::sleep(std::time::Duration::from_millis(500));
-             }
+            Ok(true) => {
+                println!("{}", "restarting...".yellow());
+                std::thread::sleep(Duration::from_millis(500));
+            }
+            Err(e) => {
+                println!("{}", e.to_string().bold().yellow());
+                println!("{}", "restarting...".yellow());
+                std::thread::sleep(Duration::from_millis(500));
+            }
          }
     }
     Ok(())
@@ -188,8 +188,9 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                         match rtp::packet::Packet::unmarshal(&mut bytes) {
                             Ok(mut packet) => {
                                 packet.header.ssrc = ssrc;
-                                if let Err(err) = video_track.write_rtp(packet).await {
-                                    eprintln!("write_rtp error: {err}");
+                                if let Err(_) = video_track.write_rtp(packet).await {
+                                    //eprintln!("write_rtp error: {err}");
+                                    println!("write_rtp error");
                                     break;
                                 }
                             }
@@ -209,6 +210,7 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
 
         
         let _ = runtime.spawn(Box::pin(async move {
+            println!("{}", "waiting for datachannel".to_string().yellow());
             let mut opened = false;
             let mut send_timer = Box::pin(sleep(Duration::from_secs(5)));         
             loop {
@@ -238,8 +240,16 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                             opened = true;
                             send_timer = Box::pin(sleep(Duration::from_secs(5)));
                         }
-                        Some(DataChannelEvent::OnClose) | None => break,
-                        _ => {}
+                        Some(DataChannelEvent::OnClose)=> {
+                            println!("{}", "datachannel closed".to_string().yellow());
+                            break
+                        },
+                        None => {
+                            println!("{}", "datachannel NONE".to_string().yellow());
+                        }
+                        _ => {
+                            println!("{}", "datachannel other".to_string().yellow());
+                        }
                     }
                 }
             }
@@ -262,7 +272,7 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                 //break;
             },
             _ = fwd_done_rx.recv().fuse() => {
-                println!("{}", "RTP forwarding ended".to_string().bold().yellow());
+                println!("{}", "RTP forwarding ended".to_string());
                 pc.close().await?;
                 return Ok(true);
             },

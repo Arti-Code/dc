@@ -73,11 +73,11 @@ impl PeerConnectionEventHandler for CameraHandler {
             },
             RTCPeerConnectionState::Connecting => {
                 state_info = format!("{}{}", "[PEER CONNECTION]: ".to_string().bold().bright_green(), state.to_string().bold().bright_green());
-                let _ = self.connected_tx.try_send(());
+                //let _ = self.connected_tx.try_send(());
             },
             RTCPeerConnectionState::Unspecified => {
                 state_info = format!("{}{}", "[PEER CONNECTION]: ".to_string().bold().bright_yellow(), state.to_string().bold().bright_yellow());
-                let _ = self.connected_tx.try_send(());
+                //let _ = self.connected_tx.try_send(());
             },
         }
         println!("{}", &state_info);

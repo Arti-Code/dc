@@ -40,12 +40,12 @@ fn main() -> Result<()> {
                 break
             },
              Ok(true) => {
-                 println!("{}", "restarting...".yellow().bold());
+                 println!("{}", "restarting...".yellow());
                  std::thread::sleep(Duration::from_millis(500));
              }
              Err(e) => {
-                 println!("error: {}", e);
-                 println!("{}", "restarting...".bright_red().bold());
+                 println!("{}", e.to_string().bold().yellow());
+                 println!("{}", "restarting...".yellow());
                  std::thread::sleep(Duration::from_millis(500));
              }
          }
@@ -55,7 +55,6 @@ fn main() -> Result<()> {
 
 async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         let mut media_engine = MediaEngine::default();
-        
         let video_codec = RTCRtpCodec {
             mime_type: MIME_TYPE_VP8.to_owned(),
             clock_rate: 90000,
@@ -63,7 +62,6 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
             sdp_fmtp_line: "".to_owned(),
             rtcp_feedback: vec![],
         };
-
         media_engine.register_codec(
             RTCRtpCodecParameters {
                 rtp_codec: video_codec.clone(),
@@ -72,9 +70,10 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
             },
             RtpCodecKind::Video,
         )?;
-
-        let registry = register_default_interceptors(Registry::new(), &mut media_engine)?;
-
+        let registry = register_default_interceptors(
+            Registry::new(), 
+            &mut media_engine
+        )?;
         let config = RTCConfigurationBuilder::new()
         .with_ice_servers(
             vec![
@@ -99,8 +98,7 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                     ..Default::default()
                 },
                 ]
-        )
-        .build();
+        ).build();
 
         let (connected_tx, mut connected_rx) = channel::<()>(1);
         let (gather_tx, mut gather_rx) = channel::<()>(1);
@@ -117,7 +115,6 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
             connected_tx,
             runtime: runtime.clone(),
         });
-
 
         let ssrc = rand::random::<u32>();
         let video_track: Arc<TrackLocalStaticRTP> =
@@ -152,28 +149,26 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
         let mut signal_client = SignalClient::new(&name, url);
         signal_client.connect().await?;
         println!("{}", "connection ready!".to_string().blue().bold());
-        let sd =signal_client.wait_data().await?;
-        println!("offer received from {}", sd.sender);
-        let offer_sdp = serde_json::from_str::<RTCSessionDescription>(&sd.description)?;
-        println!("offer sdp parsed, setting remote description...");
+        let sd0 =signal_client.wait_data().await?;
+        println!("offer received from {}", sd0.sender);
+        let offer_sdp = serde_json::from_str::<RTCSessionDescription>(&sd0.description)?;
         pc.set_remote_description(offer_sdp).await?;
-        println!("set remote sdp, creating answer...");
+        println!("creating answer...");
         let answer = pc.create_answer(None).await?;
         pc.set_local_description(answer).await?;
         let _ = gather_rx.recv().await;
-        let answer_sdp = pc.local_description().await
+        let sd1 = pc.local_description().await
         .ok_or_else(|| anyhow::anyhow!("no local description"))?;
-        let payload = serde_json::to_string(&answer_sdp)?;
-        signal_client.send_data(&sd.sender, payload, DescriptionType::Answer).await?;
-        println!("sent answer to {}", sd.sender);
+        let answer = serde_json::to_string(&sd1)?;
+        signal_client.send_data(&sd0.sender, answer, DescriptionType::Answer).await?;
+        println!("answer sent to {}", sd0.sender);
 
         let std_listener = std::net::UdpSocket::bind(VIDEO_LISTENER)?;
         let listener: Arc<dyn AsyncUdpSocket> = runtime.wrap_udp_socket(std_listener)?;
-        println!("listening for RTP on {}", VIDEO_LISTENER);
+        println!("listening for video {}", VIDEO_LISTENER);
         
-        println!("waiting for peer connection...");
+        println!("waiting for connection...");
         connected_rx.recv().await;
-        println!("forwarding RTP");
 
         let (fwd_done_tx, mut fwd_done_rx) = channel::<()>(1);
         runtime.spawn(Box::pin(async move {
@@ -186,14 +181,12 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                         match rtp::packet::Packet::unmarshal(&mut bytes) {
                             Ok(mut packet) => {
                                 packet.header.ssrc = ssrc;
-                                if let Err(err) = video_track.write_rtp(packet).await {
-                                    eprintln!("write_rtp error: {err}");
+                                if let Err(_) = video_track.write_rtp(packet).await {
+                                    println!("write_rtp error");
                                     break;
                                 }
                             }
-                            Err(err) => {
-                                eprintln!("RTP unmarshal error: {err}");
-                            }
+                            Err(err) => eprintln!("RTP unmarshal error: {err}"),
                         }
                     }
                     Err(err) => {
@@ -218,7 +211,7 @@ async fn async_main(name: String, ctrlc_rx: &mut Receiver<()>) -> Result<bool> {
                 //break;
             },
             _ = fwd_done_rx.recv().fuse() => {
-                println!("{}", "RTP forwarding ended".to_string().bold().yellow());
+                println!("{}", "RTP forwarding ended".to_string().bold());
                 pc.close().await?;
                 return Ok(true);
             },

@@ -31,15 +31,15 @@ fn main() -> Result<()> {
                 std::thread::sleep(Duration::from_millis(3000));
                 break
             },
-             Ok(true) => {
-                 println!("{}", "restarting...".yellow().bold());
-                 std::thread::sleep(Duration::from_millis(500));
-             }
-             Err(e) => {
-                 println!("error: {}", e);
-                 println!("{}", "restarting...".bright_red().bold());
-                 std::thread::sleep(Duration::from_millis(500));
-             }
+            Ok(true) => {
+                println!("{}", "restarting...".yellow());
+                std::thread::sleep(Duration::from_millis(500));
+            }
+            Err(e) => {
+                println!("{}", e.to_string().bold().yellow());
+                println!("{}", "restarting...".yellow());
+                std::thread::sleep(Duration::from_millis(500));
+            }
          }
     }
     Ok(())
