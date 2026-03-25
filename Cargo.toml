@@ -31,8 +31,8 @@ name="dc"
 path="src/main.rs"
 
 [[bin]]
-name="slave"
-path="src/slave.rs"
+name="data"
+path="src/data.rs"
 
 [[bin]]
 name = "logger"
